@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "com.appweek10"
+    namespace = "com.appweek11"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.appweek10"
-        minSdk = 24
+        applicationId = "com.appweek11"
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -35,7 +35,8 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
+
+    buildFeatures{
         viewBinding = true
     }
 }
@@ -59,6 +60,7 @@ dependencies {
 
     // coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
