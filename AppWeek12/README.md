@@ -25,9 +25,9 @@ This document covers Week 12 of the Kotlin learning project. Building on Week 11
 - **Project**: `AppWeek12` (ViewModel + StateFlow)
 - **Goal**: Simple counter app (increment, decrement, reset)
 - **Core Components**:
-    - `CounterViewModel.kt`: State management logic
-    - `MainActivity.kt`: UI layer
-    - `activity_main.xml`: Layout
+  - `CounterViewModel.kt`: State management logic
+  - `MainActivity.kt`: UI layer
+  - `activity_main.xml`: Layout
 
 ## What is ViewModel?
 
@@ -82,54 +82,54 @@ import androidx.lifecycle.ViewModel
 
 /**
  * CounterViewModel
- * 
+ *
  * Role:
  * - Manage counter state (_count)
  * - Provide state change functions (increment, decrement, reset, incrementBy10)
  * - Exist independently of Activity
- * 
+ *
  * Characteristics:
  * - Inherits from ViewModel (lifecycle management)
  * - Data preserved when Activity recreated
  * - No UI logic (only business logic)
  */
 class CounterViewModel : ViewModel() {
-    
-    // Private mutable state
-    // Only ViewModel can modify
-    private val _count = MutableStateFlow(0)
-    
-    // Public immutable state
-    // Activity can only read
-    val count: StateFlow<Int> = _count.asStateFlow()
-    
-    /**
-     * Increment by 1
-     */
-    fun increment() {
-        _count.value += 1
-    }
-    
-    /**
-     * Decrement by 1
-     */
-    fun decrement() {
-        _count.value -= 1
-    }
-    
-    /**
-     * Reset to 0
-     */
-    fun reset() {
-        _count.value = 0
-    }
-    
-    /**
-     * Increment by 10
-     */
-    fun incrementBy10() {
-        _count.value = (_count.value) + 10
-    }
+
+  // Private mutable state
+  // Only ViewModel can modify
+  private val _count = MutableStateFlow(0)
+
+  // Public immutable state
+  // Activity can only read
+  val count: StateFlow<Int> = _count.asStateFlow()
+
+  /**
+   * Increment by 1
+   */
+  fun increment() {
+    _count.value += 1
+  }
+
+  /**
+   * Decrement by 1
+   */
+  fun decrement() {
+    _count.value -= 1
+  }
+
+  /**
+   * Reset to 0
+   */
+  fun reset() {
+    _count.value = 0
+  }
+
+  /**
+   * Increment by 10
+   */
+  fun incrementBy10() {
+    _count.value = (_count.value) + 10
+  }
 }
 ```
 
@@ -155,77 +155,77 @@ import com.appweek12.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    
-    // View Binding
-    private lateinit var binding: ActivityMainBinding
-    
-    // Initialize ViewModel
-    // by viewModels(): Automatically creates ViewModel and manages lifecycle
-    private val viewModel: CounterViewModel by viewModels()
-    
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        // Start observing state
-        setupObservers()
-        
-        // Setup button listeners
-        setupListeners()
+
+  // View Binding
+  private lateinit var binding: ActivityMainBinding
+
+  // Initialize ViewModel
+  // by viewModels(): Automatically creates ViewModel and manages lifecycle
+  private val viewModel: CounterViewModel by viewModels()
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    binding = ActivityMainBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+
+    // Start observing state
+    setupObservers()
+
+    // Setup button listeners
+    setupListeners()
+  }
+
+  /**
+   * Observe StateFlow
+   *
+   * UI updates whenever ViewModel state changes
+   */
+  private fun setupObservers() {
+    lifecycleScope.launch {
+      // repeatOnLifecycle: Automatically follow Activity lifecycle
+      // Observe only when STARTED state
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.count.collect { count ->
+          // Executes whenever count changes
+          binding.textViewCount.text = count.toString()
+
+          // Change color based on state
+          when {
+            count > 0 -> binding.textViewCount.setTextColor(Color.BLUE)    // Positive: Blue
+            count < 0 -> binding.textViewCount.setTextColor(Color.RED)     // Negative: Red
+            else -> binding.textViewCount.setTextColor(Color.BLACK)        // Zero: Black
+          }
+        }
+      }
     }
-    
-    /**
-     * Observe StateFlow
-     * 
-     * UI updates whenever ViewModel state changes
-     */
-    private fun setupObservers() {
-        lifecycleScope.launch {
-            // repeatOnLifecycle: Automatically follow Activity lifecycle
-            // Observe only when STARTED state
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.count.collect { count ->
-                    // Executes whenever count changes
-                    binding.textViewCount.text = count.toString()
-                    
-                    // Change color based on state
-                    when {
-                        count > 0 -> binding.textViewCount.setTextColor(Color.BLUE)    // Positive: Blue
-                        count < 0 -> binding.textViewCount.setTextColor(Color.RED)     // Negative: Red
-                        else -> binding.textViewCount.setTextColor(Color.BLACK)        // Zero: Black
-                    }
-                }
-            }
-        }
+  }
+
+  /**
+   * Setup button click listeners
+   *
+   * Button click → Call ViewModel method → State change → UI auto-update
+   */
+  private fun setupListeners() {
+    // +1 button
+    binding.buttonPlus.setOnClickListener {
+      viewModel.increment()
     }
-    
-    /**
-     * Setup button click listeners
-     * 
-     * Button click → Call ViewModel method → State change → UI auto-update
-     */
-    private fun setupListeners() {
-        // +1 button
-        binding.buttonPlus.setOnClickListener {
-            viewModel.increment()
-        }
-        
-        // -1 button
-        binding.buttonMinus.setOnClickListener {
-            viewModel.decrement()
-        }
-        
-        // Reset button
-        binding.buttonReset.setOnClickListener {
-            viewModel.reset()
-        }
-        
-        // +10 button
-        binding.buttonPlus10.setOnClickListener {
-            viewModel.incrementBy10()
-        }
+
+    // -1 button
+    binding.buttonMinus.setOnClickListener {
+      viewModel.decrement()
     }
+
+    // Reset button
+    binding.buttonReset.setOnClickListener {
+      viewModel.reset()
+    }
+
+    // +10 button
+    binding.buttonPlus10.setOnClickListener {
+      viewModel.incrementBy10()
+    }
+  }
 }
 ```
 
@@ -240,35 +240,35 @@ class MainActivity : AppCompatActivity() {
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="20dp"
-    tools:context=".MainActivity">
-
-    <!-- Counter display -->
-    <TextView
-        android:id="@+id/textViewCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="60sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="40dp"
-        android:textColor="@android:color/black" />
-
-    <!-- Button group -->
-    <LinearLayout
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         android:gravity="center"
-        android:spacing="10dp">
+        android:padding="20dp"
+        tools:context=".MainActivity">
 
-        <!-- -1 button -->
-        <Button
+  <!-- Counter display -->
+  <TextView
+          android:id="@+id/textViewCount"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="0"
+          android:textSize="60sp"
+          android:textStyle="bold"
+          android:layout_marginBottom="40dp"
+          android:textColor="@android:color/black" />
+
+  <!-- Button group -->
+  <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:gravity="center"
+          android:spacing="10dp">
+
+    <!-- -1 button -->
+    <Button
             android:id="@+id/buttonMinus"
             android:layout_width="80dp"
             android:layout_height="60dp"
@@ -276,8 +276,8 @@ class MainActivity : AppCompatActivity() {
             android:textSize="20sp"
             android:layout_margin="5dp" />
 
-        <!-- +1 button -->
-        <Button
+    <!-- +1 button -->
+    <Button
             android:id="@+id/buttonPlus"
             android:layout_width="80dp"
             android:layout_height="60dp"
@@ -285,8 +285,8 @@ class MainActivity : AppCompatActivity() {
             android:textSize="20sp"
             android:layout_margin="5dp" />
 
-        <!-- +10 button -->
-        <Button
+    <!-- +10 button -->
+    <Button
             android:id="@+id/buttonPlus10"
             android:layout_width="80dp"
             android:layout_height="60dp"
@@ -294,16 +294,16 @@ class MainActivity : AppCompatActivity() {
             android:textSize="20sp"
             android:layout_margin="5dp" />
 
-    </LinearLayout>
+  </LinearLayout>
 
-    <!-- Reset button -->
-    <Button
-        android:id="@+id/buttonReset"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:text="Reset"
-        android:textSize="18sp"
-        android:layout_marginTop="40dp" />
+  <!-- Reset button -->
+  <Button
+          android:id="@+id/buttonReset"
+          android:layout_width="200dp"
+          android:layout_height="50dp"
+          android:text="Reset"
+          android:textSize="18sp"
+          android:layout_marginTop="40dp" />
 
 </LinearLayout>
 ```
@@ -314,19 +314,19 @@ class MainActivity : AppCompatActivity() {
 
 ```kotlin
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
+  id("com.android.application")
+  id("kotlin-android")
 }
 
 dependencies {
-    // ViewModel
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    
-    // Coroutines & Flow (StateFlow)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    
-    // Lifecycle (lifecycleScope)
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+  // ViewModel
+  implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+
+  // Coroutines & Flow (StateFlow)
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+  // Lifecycle (lifecycleScope)
+  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 }
 ```
 
@@ -387,14 +387,14 @@ val count: StateFlow<Int> = _count.asStateFlow()
 
 // 2. Change state in ViewModel
 fun increment() {
-    _count.value += 1
+  _count.value += 1
 }
 
 // 3. Observe state in Activity
 lifecycleScope.launch {
-    viewModel.count.collect { count ->
-        // Update UI
-    }
+  viewModel.count.collect { count ->
+    // Update UI
+  }
 }
 
 // 4. Request state change in Activity
@@ -406,18 +406,18 @@ viewModel.increment()
 ```kotlin
 // Bad: Continues observing even after Activity destroyed
 lifecycleScope.launch {
-    viewModel.count.collect { count ->
-        binding.textViewCount.text = count.toString()
-    }
+  viewModel.count.collect { count ->
+    binding.textViewCount.text = count.toString()
+  }
 }
 
 // Good: Observes only when STARTED state
 lifecycleScope.launch {
-    repeatOnLifecycle(Lifecycle.State.STARTED) {
-        viewModel.count.collect { count ->
-            binding.textViewCount.text = count.toString()
-        }
+  repeatOnLifecycle(Lifecycle.State.STARTED) {
+    viewModel.count.collect { count ->
+      binding.textViewCount.text = count.toString()
     }
+  }
 }
 ```
 
@@ -440,14 +440,14 @@ lifecycleScope.launch {
 ```kotlin
 // Bad: ViewModel references Activity (memory leak)
 class BadViewModel(val activity: MainActivity) : ViewModel() {
-    // Memory leak risk!
+  // Memory leak risk!
 }
 
 // Good: Pure logic without context
 class GoodViewModel : ViewModel() {
-    fun increment() {
-        _count.value += 1  // Only change state, independent of UI
-    }
+  fun increment() {
+    _count.value += 1  // Only change state, independent of UI
+  }
 }
 ```
 
@@ -456,18 +456,18 @@ class GoodViewModel : ViewModel() {
 ```kotlin
 // Bad: Possible memory leak
 lifecycleScope.launch {
-    viewModel.count.collect { count ->
-        binding.textViewCount.text = count.toString()
-    }
+  viewModel.count.collect { count ->
+    binding.textViewCount.text = count.toString()
+  }
 }
 
 // Good: Auto-cancel based on lifecycle
 lifecycleScope.launch {
-    repeatOnLifecycle(Lifecycle.State.STARTED) {
-        viewModel.count.collect { count ->
-            binding.textViewCount.text = count.toString()
-        }
+  repeatOnLifecycle(Lifecycle.State.STARTED) {
+    viewModel.count.collect { count ->
+      binding.textViewCount.text = count.toString()
     }
+  }
 }
 ```
 
@@ -476,8 +476,8 @@ lifecycleScope.launch {
 ```kotlin
 // Bad: Creates new ViewModel in onCreate (recreated every time)
 override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    val viewModel = CounterViewModel()  // New instance every time!
+  super.onCreate(savedInstanceState)
+  val viewModel = CounterViewModel()  // New instance every time!
 }
 
 // Good: Use viewModels()
@@ -515,6 +515,4 @@ To verify ViewModel's effectiveness:
 
 After completing Week 12, you've mastered ViewModel and StateFlow basics. Next:
 
-- **Week 13+**: Combine Room Database with ViewModel (Student Manager App)
-- **Week 13+**: Repository pattern for data abstraction
-- **Week 13+**: Retrofit for network integration
+- Week 13: Combine Room Database with ViewModel (Student Manager App) & Jetpack Compose
